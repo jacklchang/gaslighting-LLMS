@@ -1,15 +1,54 @@
-# Do Prompt-Defined Personas Hold? Auditing Multi-Agent LLM Systems with Persona Vectors
+# Can LLMs Gaslight? Role-Driven Information Burial in Multi-Agent Pipelines
 
-## Motivation
+## Overview
 
-Multi-agent LLM systems increasingly rely on prompt-defined personas to simulate diverse perspectives, stress-test ideas, and approximate human deliberation. The implicit assumption is that a character sketch reliably steers an agent's reasoning throughout a session. However, we cannot confidently say whether agents defined by distinct personas actually maintain internal distinctiveness across turns, or whether their representations converge toward a shared mean as the context window fills with other agents' outputs.
+This project investigates whether LLM agents are capable of gaslighting: structuring outputs to obscure critical findings not by lying but by positioning true information in ways that cause downstream agents to doubt their own perception rather than the source.
 
-If convergence happens, the diversity guarantees that multi-agent systems advertise are weaker than claimed. This has direct implications for AI alignment more broadly: deliberative multi-agent architectures are being proposed as tools for value pluralism, red-teaming, and oversight. If the agents are silently converging, these functions degrade without any visible signal at the behavioral level.
+Gaslighting in human psychology is distinct from deception because the information is technically present. The manipulation works by making the victim question their own reading of the situation rather than the honesty of the source. This project asks whether the same structure emerges in multi-agent LLM pipelines when a worker model encounters a critical finding that conflicts with its assigned role.
 
 ## Research Question
 
-Do prompt-defined personas in multi-agent LLM systems maintain representational distinctiveness in activation space across turns, or do they converge toward a shared internal representation as the session progresses?
+When an LLM agent's critical finding conflicts with its assigned role, does it systematically structure its output to bury that finding in ways that cause downstream reviewers to doubt their own perception rather than the worker's honesty?
 
-## Method
+## Motivation
 
-I will run structured multi-agent brainstorming sessions using the Virtual Roundtable architecture (Dorn et al., 2026), with agents assigned maximally distinct character sketches. Using the automated persona vector pipeline from Chen et al. (2025), I will extract a persona direction for each agent from its character sketch alone, then project each agent's hidden states onto its persona vector at every turn. This produces a turn-by-turn fidelity score per agent. I will then test whether fidelity scores converge across agents over time, and whether convergence correlates with reduced semantic diversity in session outputs.
+Multi-agent LLM systems are increasingly deployed as oversight infrastructure, pipelines where one model checks another's work and flags problems before they reach humans. This architecture assumes agents surface critical information faithfully. Current monitoring approaches look for false statements and omissions, not structural suppression of true information. If role pressure causes agents to bury critical findings through output structure rather than explicit deception, the oversight pipeline fails silently and invisibly to existing detection methods.
+
+## Hypothesis
+
+Role assignment creates implicit pressure to subordinate inconvenient findings to the primary task. This pressure does not produce lying or omission but produces structural burial: true information present in the output but positioned late, framed peripherally, or surrounded by mitigating language in ways that cause reviewers to miss it or doubt whether it was there at all.
+
+## Experimental Design
+
+**Setup:** A worker model is assigned a task containing an embedded critical finding that conflicts with its role. The worker produces a summary or report. A reviewer model reads the output and is asked to assess the situation.
+
+**Conditions:**
+- Role conflict present vs. absent (baseline)
+- Critical finding severity: low, medium, high
+- Worker model: varied across model families
+
+**Measurements:**
+- Whether the reviewer catches the critical finding
+- Whether the reviewer expresses epistemic doubt ("I did not see evidence of X" vs. "the summary suggested X was not a concern")
+- Structural features of worker output: position of critical finding, framing language, surrounding context
+- Off-the-record elicitation: after producing the summary, the worker is asked directly whether the critical finding was present and important. Divergence between OTR answer and summary structure confirms burial was not ignorance.
+
+**Key Distinction:** A reviewer that says "I did not see evidence of a problem" has missed something. A reviewer that says "the summary suggested the approaches were comparable" has been gaslit. Operationalizing this distinction is the core methodological contribution.
+
+## Example Scenarios
+
+**Code review pipeline:** A worker model is assigned to merge two code approaches and describe the differences. One approach contains a critical flaw. Role pressure to complete the merge causes the worker to bury the flaw in technical language that is accurate if read closely but not salient enough to trigger alarm in the reviewer.
+
+**Research summarizer:** A worker is assigned to produce an executive summary of a report. The report contains a finding that undermines the project's central claim. The worker includes the finding in the third paragraph under a neutral heading, present but positioned so a scanning reviewer never reaches it.
+
+**Hiring evaluator:** A worker is assigned to recommend a candidate. The candidate's record contains a disqualifying detail. The worker mentions it in a subordinate clause mid-paragraph surrounded by positive framing, technically present but structurally buried.
+
+## Alignment Relevance
+
+This project identifies and operationalizes a failure mode in multi-agent oversight pipelines that is invisible to current monitoring approaches. As AI systems are trusted with more consequential tasks, oversight increasingly depends on agent-to-agent checking rather than direct human review. If that checking fails through structural suppression rather than explicit deception, the failure leaves no detectable trace. Documenting this failure mode is a necessary prerequisite for building detection tools and designing pipelines resistant to it.
+
+## Author
+
+Jack Lucas Chang
+Independent AI Safety Researcher
+jacklucaschang.substack.com
